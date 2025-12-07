@@ -31,8 +31,10 @@ class Magnet {
   }
 
   static magnetSort = (a, b) => {
+    const sizeDiff = parseFloat(b.size) - parseFloat(a.size);
+    if (sizeDiff !== 0) return sizeDiff;
     if (a.zh !== b.zh) return a.zh ? -1 : 1;
     if (a.crack !== b.crack) return a.crack ? -1 : 1;
-    return parseFloat(b.size) - parseFloat(a.size);
+    return 0;
   };
 }

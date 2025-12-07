@@ -5,12 +5,12 @@ class Offline {
 
   static defaultColor = "is-info";
 
-  static defaultRename = "${zh}${crack} ${code} ${title}";
+  static defaultRename = "${zh}${crack} ${code}";
 
   static defaultOptions = {
     tags: ["genres", "actors"],
     clean: true,
-    cover: true,
+    cover: false,
   };
 
   static defaultMagnetOptions = {
@@ -28,10 +28,10 @@ class Offline {
   };
 
   static defaultRenameTxt = {
-    no: ".${no}",
+    no: "-CD${no}",
     sep: "-",
-    zh: "[中字]",
-    crack: "[破解]",
+    zh: "-C",
+    crack: "",
   };
 
   static parseVar(txt, params, rep = "") {
