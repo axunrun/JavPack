@@ -476,7 +476,7 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
     if (res) setTimeout(() => unsafeWindow[MATCH_API]?.(target), MATCH_DELAY);
   };
 
-  // 磁链嗅探缓存：key为mid，value为磁链数组
+  // 磁链嗅探缓存：key为mid，value为{ magnets, details }
   const magnetCache = new Map();
 
   // 从DOM中获取磁链（与/v页面相同逻辑）
@@ -487,15 +487,20 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
       .toSorted(Magnet.magnetSort);
   };
 
-  // 嗅探单个视频的磁链
+  // 嗅探单个视频的磁链和详情
   const sniffMagnet = async (videoUrl) => {
     const mid = videoUrl.split("/").at(-1);
-    if (magnetCache.has(mid)) return magnetCache.get(mid);
+    if (magnetCache.has(mid)) {
+      const cached = magnetCache.get(mid);
+      return cached.magnets;
+    }
 
     try {
       const dom = await Req.request(videoUrl);
+      const details = getDetails(dom);
       const magnets = getMagnetsFromDom(dom);
-      magnetCache.set(mid, magnets);
+      // 同时缓存磁链和详情
+      magnetCache.set(mid, { magnets, details });
       return magnets;
     } catch (err) {
       console.error('Failed to sniff magnet:', err);
@@ -533,9 +538,10 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
       const videoUrl = target.closest("a").href;
       const mid = videoUrl.split("/").at(-1);
 
-      // 优先使用缓存的磁链（来自嗅探）
-      let magnets = magnetCache.get(mid) || [];
-      let details = null;
+      // 优先使用缓存的磁链和详情（来自嗅探）
+      const cached = magnetCache.get(mid);
+      let magnets = cached?.magnets || [];
+      let details = cached?.details || null;
       let UNC = false;
       let magnetOptions = null;
       let options = null;
@@ -560,11 +566,11 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
         magnets = getMagnetsFromDom(dom);
         if (!magnets.length) throw new Error("Not found magnets");
 
-        // 将获取的磁链加入缓存
-        magnetCache.set(mid, magnets);
+        // 将获取的磁链和详情一起加入缓存
+        magnetCache.set(mid, { magnets, details });
       } else {
-        // 使用缓存的磁链，需要获取基本详情
-        details = { code: target.closest(".item")?.querySelector("strong")?.textContent?.trim() || "" };
+        // 使用缓存的详情（来自/v页面的完整信息）
+        UNC = isUncensored();
         ({ magnetOptions, ...options } = Offline.getOptions(action, details));
       }
 
