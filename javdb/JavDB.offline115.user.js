@@ -218,13 +218,20 @@ const getDetails = (dom = document) => {
   }
 
   // 综合多种条件识别VR影片
-  info.isVR =
-    // 条件1：title中包含"【VR】"
-    info.title.includes("【VR】") ||
-    // 条件2：番号中包含"VR"（如MDVR、ABPVR）
-    code.toUpperCase().includes("VR") ||
-    // 条件3：类别中包含"VR"
-    (info.genres && info.genres.some(genre => genre.toUpperCase().includes("VR")));
+  const isVRByTitle = info.title.includes("【VR】");
+  const isVRByCode = code.toUpperCase().includes("VR");
+  const isVRByGenres = info.genres && info.genres.some(genre => genre.toUpperCase().includes("VR"));
+
+  info.isVR = isVRByTitle || isVRByCode || isVRByGenres;
+
+  // 输出调试信息
+  console.log(`[VR识别] ${code}:`, {
+    title: info.title,
+    isVRByTitle,
+    isVRByCode,
+    isVRByGenres,
+    isVR: info.isVR,
+  });
 
   return { ...Util.codeParse(code), ...info };
 };
@@ -552,17 +559,11 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
         const isActorsPage = location.pathname.startsWith("/actors");
 
         if (isActorsPage) {
-          // /actor页面：先通过番号识别VR
-          const code = target.closest(".item")?.querySelector("strong")?.textContent?.trim() || "";
-          const isVRByCode = code.toUpperCase().includes("VR");
-
-          // 然后请求/v页面获取完整信息和磁链
+          // /actor页面：直接请求/v页面获取完整信息和磁链
+          // 不依赖/actor页面的不完整DOM信息
           const dom = await Req.request(videoUrl);
           details = getDetails(dom);
           if (!details) throw new Error("Not found details");
-
-          // 覆盖VR识别结果：/actor页面优先使用番号识别
-          details.isVR = isVRByCode || details.isVR;
 
           UNC = isUncensored(dom);
           ({ magnetOptions, ...options } = Offline.getOptions(action, details));
