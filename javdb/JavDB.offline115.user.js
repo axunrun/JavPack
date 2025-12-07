@@ -410,7 +410,19 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
       const actor = getLastName(actorSectionName).replace("(無碼)", "").trim();
       const nodeList = document.querySelectorAll(".actor-tags.tags .tag.is-medium.is-link:not(.is-outlined)");
       const genres = [...nodeList].map((item) => item.textContent.trim());
-      return { actors: [actor], genres };
+
+      // 在/actor页面通过番号识别VR
+      const videoItems = document.querySelectorAll(".movie-list .item");
+      let isVRActor = false;
+      for (const item of videoItems) {
+        const code = item.querySelector("strong")?.textContent?.trim() || "";
+        if (code.toUpperCase().includes("VR")) {
+          isVRActor = true;
+          break;
+        }
+      }
+
+      return { actors: [actor], genres, isVR: isVRActor };
     };
 
     const getOnSeries = () => {
