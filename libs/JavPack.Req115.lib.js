@@ -339,7 +339,7 @@ class Req115 extends Drive115 {
       items
         .toSorted((a, b) => a.n.localeCompare(b.n))
         .forEach(({ fid }, idx) => {
-          const no = noTxt.replaceAll("${no}", `${idx + 1}`.padStart(2, "0"));
+          const no = noTxt.replaceAll("${no}", `${idx + 1}`.padStart(1, "0"));
           renameObj[fid] = `${rename}${no}.${ico}`;
         });
     }
