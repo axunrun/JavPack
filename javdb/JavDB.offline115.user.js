@@ -548,26 +548,61 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
 
       // 如果没有缓存，再请求页面
       if (!magnets.length) {
-        const dom = await Req.request(videoUrl);
-        details = getDetails(dom);
-        if (!details) throw new Error("Not found details");
+        // 检查当前页面是否为/actors页面
+        const isActorsPage = location.pathname.startsWith("/actors");
 
-        UNC = isUncensored(dom);
-        ({ magnetOptions, ...options } = Offline.getOptions(action, details));
+        if (isActorsPage) {
+          // /actor页面：先通过番号识别VR
+          const code = target.closest(".item")?.querySelector("strong")?.textContent?.trim() || "";
+          const isVRByCode = code.toUpperCase().includes("VR");
 
-        // 从请求的视频页面DOM中获取磁链
-        const getMagnetsFromDom = (domArg) => {
-          return [...domArg.querySelectorAll("#magnets-content > .item")]
-            .map(parseMagnet)
-            .filter(Boolean)
-            .toSorted(Magnet.magnetSort);
-        };
+          // 然后请求/v页面获取完整信息和磁链
+          const dom = await Req.request(videoUrl);
+          details = getDetails(dom);
+          if (!details) throw new Error("Not found details");
 
-        magnets = getMagnetsFromDom(dom);
-        if (!magnets.length) throw new Error("Not found magnets");
+          // 覆盖VR识别结果：/actor页面优先使用番号识别
+          details.isVR = isVRByCode || details.isVR;
 
-        // 将获取的磁链和详情一起加入缓存
-        magnetCache.set(mid, { magnets, details });
+          UNC = isUncensored(dom);
+          ({ magnetOptions, ...options } = Offline.getOptions(action, details));
+
+          // 获取磁链
+          const getMagnetsFromDom = (domArg) => {
+            return [...domArg.querySelectorAll("#magnets-content > .item")]
+              .map(parseMagnet)
+              .filter(Boolean)
+              .toSorted(Magnet.magnetSort);
+          };
+
+          magnets = getMagnetsFromDom(dom);
+          if (!magnets.length) throw new Error("Not found magnets");
+
+          // 将获取的磁链和详情一起加入缓存
+          magnetCache.set(mid, { magnets, details });
+        } else {
+          // /v页面：获取完整详情
+          const dom = await Req.request(videoUrl);
+          details = getDetails(dom);
+          if (!details) throw new Error("Not found details");
+
+          UNC = isUncensored(dom);
+          ({ magnetOptions, ...options } = Offline.getOptions(action, details));
+
+          // 获取磁链
+          const getMagnetsFromDom = (domArg) => {
+            return [...domArg.querySelectorAll("#magnets-content > .item")]
+              .map(parseMagnet)
+              .filter(Boolean)
+              .toSorted(Magnet.magnetSort);
+          };
+
+          magnets = getMagnetsFromDom(dom);
+          if (!magnets.length) throw new Error("Not found magnets");
+
+          // 将获取的磁链和详情一起加入缓存
+          magnetCache.set(mid, { magnets, details });
+        }
       } else {
         // 使用缓存的详情（来自/v页面的完整信息）
         UNC = isUncensored();
