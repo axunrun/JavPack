@@ -620,10 +620,16 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
         const originalDir = action.dir || [];
         const actorDirIndex = originalDir.findIndex(dir => dir.includes("演员"));
         if (actorDirIndex !== -1 && !originalDir.includes("VR")) {
-          // 在演员目录后插入VR子目录，避免重复
+          // 从当前页面获取actor名称（用户切换actor后页面会更新）
+          const actorSectionName = document.querySelector(".actor-section-name")?.textContent.trim() ?? "";
+          const currentActor = actorSectionName.split(", ").at(-1).trim() || "未知演员";
+
+          // 使用当前页面的actor名称更新目录结构
           options.dir = [
-            ...originalDir.slice(0, actorDirIndex + 1),
-            "VR"
+            originalDir[0],  // "云下载"
+            originalDir[1],  // "演员"
+            currentActor,    // 当前actor名称
+            "VR"             // VR子目录
           ];
         }
       }
