@@ -4,16 +4,12 @@ const magnetOptions = {
     return magnetSize > 314572800 || magnetSize < 1;
   },
   sort: (a, b) => {
-    if (a.crack !== b.crack) return a.crack ? -1 : 1;
+    // 新排序：大小 > 中文字幕 > 破解
+    const sizeDiff = parseFloat(b.size) - parseFloat(a.size);
+    if (sizeDiff !== 0) return sizeDiff;
     if (a.zh !== b.zh) return a.zh ? -1 : 1;
-
-    const aSize = parseFloat(a.size);
-    const bSize = parseFloat(b.size);
-
-    const aDiff = Math.abs(aSize - 3221225472);
-    const bDiff = Math.abs(bSize - 3221225472);
-
-    return aDiff !== bDiff ? aDiff - bDiff : bSize - aSize;
+    if (a.crack !== b.crack) return a.crack ? -1 : 1;
+    return 0;
   },
   max: 10,
 };

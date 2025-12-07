@@ -244,6 +244,13 @@ const findAction = ({ index, idx }, actions) => {
 const parseMagnet = (node) => {
   const name = node.querySelector(".name")?.textContent.trim() ?? "";
   const meta = node.querySelector(".meta")?.textContent.trim() ?? "";
+
+  // 过滤掉VR、AI、SP等特殊版本文件
+  const excludePatterns = [/-AI\b/i, /-SP\b/i, /-VR\b/i, /VR-/i];
+  if (excludePatterns.some((pattern) => pattern.test(name))) {
+    return null;
+  }
+
   return {
     url: node.querySelector(".magnet-name a")?.href?.split("&")[0].toLowerCase(),
     crack: !!node.querySelector(".tag.is-info") || Magnet.crackReg.test(name),
@@ -255,7 +262,10 @@ const parseMagnet = (node) => {
 };
 
 const getMagnets = (dom = document) => {
-  return [...dom.querySelectorAll("#magnets-content > .item")].map(parseMagnet).toSorted(Magnet.magnetSort);
+  return [...dom.querySelectorAll("#magnets-content > .item")]
+    .map(parseMagnet)
+    .filter(Boolean)
+    .toSorted(Magnet.magnetSort);
 };
 
 const checkCrack = (magnets, uncensored) => {
