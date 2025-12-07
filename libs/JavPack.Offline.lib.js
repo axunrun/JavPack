@@ -41,7 +41,20 @@ class Offline {
 
   static parseDir(dir, params) {
     const rep = "$0";
-    return (typeof dir === "string" ? dir.split("/") : dir).map((item) => {
+    let dirPaths = typeof dir === "string" ? dir.split("/") : [...dir];
+
+    // 如果是VR影片，在actors类型的目录中插入VR子目录
+    if (params.isVR && dirPaths.some(path => path.includes("${actor}"))) {
+      dirPaths = dirPaths.flatMap((path) => {
+        if (path.includes("${actor}")) {
+          // 在actor路径后插入VR目录
+          return [path, "VR"];
+        }
+        return [path];
+      });
+    }
+
+    return dirPaths.map((item) => {
       const txt = this.parseVar(item, params, rep);
       return txt.includes(rep) ? null : txt;
     });

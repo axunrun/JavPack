@@ -174,6 +174,9 @@ const getDetails = (dom = document) => {
   const current = titleNode.querySelector(".current-title");
   info.title = `${label}${(origin ?? current).textContent}`.replace(code, "").trim();
 
+  // 识别VR影片
+  info.isVR = info.title.includes("【VR】");
+
   infoNode.querySelectorAll(":scope > .panel-block").forEach((item) => {
     const label = item.querySelector("strong")?.textContent.trim();
     const value = item.querySelector(".value")?.textContent.trim();
