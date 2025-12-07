@@ -6,9 +6,9 @@
 // @description     预告片
 // @match           https://javdb.com/*
 // @icon            https://javdb.com/favicon.ico
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Req.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.ReqTrailer.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Util.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Req.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.ReqTrailer.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Util.lib.js
 // @connect         caribbeancom.com
 // @connect         pacopacomama.com
 // @connect         tokyo-hot.com

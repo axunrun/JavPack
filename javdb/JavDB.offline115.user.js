@@ -7,17 +7,17 @@
 // @match           https://javdb.com/*
 // @match           https://captchaapi.115.com/*
 // @icon            https://javdb.com/favicon.ico
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Grant.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Magnet.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Offline.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Req.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Req115.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Util.lib.js
-// @require         https://github.com/bolin-dev/JavPack/raw/main/libs/JavPack.Verify115.lib.js
-// @resource        pend https://github.com/bolin-dev/JavPack/raw/main/assets/pend.png
-// @resource        warn https://github.com/bolin-dev/JavPack/raw/main/assets/warn.png
-// @resource        error https://github.com/bolin-dev/JavPack/raw/main/assets/error.png
-// @resource        success https://github.com/bolin-dev/JavPack/raw/main/assets/success.png
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Grant.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Magnet.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Offline.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Req.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Req115.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Util.lib.js
+// @require         https://github.com/axunrun/JavPack/raw/main/libs/JavPack.Verify115.lib.js
+// @resource        pend https://github.com/axunrun/JavPack/raw/main/assets/pend.png
+// @resource        warn https://github.com/axunrun/JavPack/raw/main/assets/warn.png
+// @resource        error https://github.com/axunrun/JavPack/raw/main/assets/error.png
+// @resource        success https://github.com/axunrun/JavPack/raw/main/assets/success.png
 // @connect         jdbstatic.com
 // @connect         aliyuncs.com
 // @connect         javdb.com
