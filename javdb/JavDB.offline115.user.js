@@ -620,11 +620,10 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
         const originalDir = action.dir || [];
         const actorDirIndex = originalDir.findIndex(dir => dir.includes("演员"));
         if (actorDirIndex !== -1 && !originalDir.includes("VR")) {
-          // 在演员目录后插入VR子目录
+          // 在演员目录后插入VR子目录，避免重复
           options.dir = [
             ...originalDir.slice(0, actorDirIndex + 1),
-            "VR",
-            ...originalDir.slice(actorDirIndex + 1)
+            "VR"
           ];
         }
       }
