@@ -174,9 +174,6 @@ const getDetails = (dom = document) => {
   const current = titleNode.querySelector(".current-title");
   info.title = `${label}${(origin ?? current).textContent}`.replace(code, "").trim();
 
-  // 识别VR影片
-  info.isVR = info.title.includes("【VR】");
-
   infoNode.querySelectorAll(":scope > .panel-block").forEach((item) => {
     const label = item.querySelector("strong")?.textContent.trim();
     const value = item.querySelector(".value")?.textContent.trim();
@@ -219,6 +216,15 @@ const getDetails = (dom = document) => {
     info.month = month;
     info.day = day;
   }
+
+  // 综合多种条件识别VR影片
+  info.isVR =
+    // 条件1：title中包含"【VR】"
+    info.title.includes("【VR】") ||
+    // 条件2：番号中包含"VR"（如MDVR、ABPVR）
+    code.toUpperCase().includes("VR") ||
+    // 条件3：类别中包含"VR"
+    (info.genres && info.genres.some(genre => genre.toUpperCase().includes("VR")));
 
   return { ...Util.codeParse(code), ...info };
 };
