@@ -493,7 +493,15 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
       const UNC = isUncensored(dom);
       const { magnetOptions, ...options } = Offline.getOptions(action, details);
 
-      const magnets = Offline.getMagnets(getMagnets(dom), magnetOptions);
+      // 从请求的视频页面DOM中获取磁链，而不是当前actor页面
+      const getMagnetsFromDom = (domArg) => {
+        return [...domArg.querySelectorAll("#magnets-content > .item")]
+          .map(parseMagnet)
+          .filter(Boolean)
+          .toSorted(Magnet.magnetSort);
+      };
+
+      const magnets = Offline.getMagnets(getMagnetsFromDom(dom), magnetOptions);
       if (!magnets.length) throw new Error("Not found magnets");
 
       offline({
