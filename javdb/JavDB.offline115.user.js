@@ -411,18 +411,9 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
       const nodeList = document.querySelectorAll(".actor-tags.tags .tag.is-medium.is-link:not(.is-outlined)");
       const genres = [...nodeList].map((item) => item.textContent.trim());
 
-      // 在/actor页面通过番号识别VR
-      const videoItems = document.querySelectorAll(".movie-list .item");
-      let isVRActor = false;
-      for (const item of videoItems) {
-        const code = item.querySelector("strong")?.textContent?.trim() || "";
-        if (code.toUpperCase().includes("VR")) {
-          isVRActor = true;
-          break;
-        }
-      }
-
-      return { actors: [actor], genres, isVR: isVRActor };
+      // 注意：不在这里进行VR识别，因为getOnActors在页面加载时执行
+      // VR识别应该在点击具体视频下载时进行
+      return { actors: [actor], genres };
     };
 
     const getOnSeries = () => {
@@ -620,6 +611,22 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
         // 使用缓存的详情（来自/v页面的完整信息）
         UNC = isUncensored();
         ({ magnetOptions, ...options } = Offline.getOptions(action, details));
+      }
+
+      // 重要：基于具体的视频详情重新生成action.dir
+      // 因为页面加载时生成的action.dir可能不包含VR子目录
+      if (location.pathname.startsWith("/actors") && details?.isVR) {
+        // 为/actor页面的VR视频动态更新目录结构
+        const originalDir = action.dir || [];
+        const actorDirIndex = originalDir.findIndex(dir => dir.includes("演员"));
+        if (actorDirIndex !== -1 && !originalDir.includes("VR")) {
+          // 在演员目录后插入VR子目录
+          options.dir = [
+            ...originalDir.slice(0, actorDirIndex + 1),
+            "VR",
+            ...originalDir.slice(actorDirIndex + 1)
+          ];
+        }
       }
 
       // 筛选磁链
