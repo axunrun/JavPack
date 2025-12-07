@@ -473,6 +473,47 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
     if (res) setTimeout(() => unsafeWindow[MATCH_API]?.(target), MATCH_DELAY);
   };
 
+  // 磁链嗅探缓存：key为mid，value为磁链数组
+  const magnetCache = new Map();
+
+  // 从DOM中获取磁链（与/v页面相同逻辑）
+  const getMagnetsFromDom = (domArg) => {
+    return [...domArg.querySelectorAll("#magnets-content > .item")]
+      .map(parseMagnet)
+      .filter(Boolean)
+      .toSorted(Magnet.magnetSort);
+  };
+
+  // 嗅探单个视频的磁链
+  const sniffMagnet = async (videoUrl) => {
+    const mid = videoUrl.split("/").at(-1);
+    if (magnetCache.has(mid)) return magnetCache.get(mid);
+
+    try {
+      const dom = await Req.request(videoUrl);
+      const magnets = getMagnetsFromDom(dom);
+      magnetCache.set(mid, magnets);
+      return magnets;
+    } catch (err) {
+      console.error('Failed to sniff magnet:', err);
+      return [];
+    }
+  };
+
+  // 批量嗅探可见视频的磁链
+  const sniffVisibleMagnets = async () => {
+    const videoLinks = document.querySelectorAll(".movie-list .item a");
+    const promises = [...videoLinks].slice(0, 5).map(link => sniffMagnet(link.href));
+    await Promise.all(promises);
+  };
+
+  // 监听滚动事件，嗅探新出现的视频
+  let sniffTimeout = null;
+  const handleScrollSniff = () => {
+    if (sniffTimeout) clearTimeout(sniffTimeout);
+    sniffTimeout = setTimeout(sniffVisibleMagnets, 1000);
+  };
+
   const onclick = async (e) => {
     const { target } = e;
     if (!target.classList.contains(TARGET_CLASS)) return;
@@ -486,27 +527,52 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
     onstart(target);
 
     try {
-      const dom = await Req.request(target.closest("a").href);
-      const details = getDetails(dom);
-      if (!details) throw new Error("Not found details");
+      const videoUrl = target.closest("a").href;
+      const mid = videoUrl.split("/").at(-1);
 
-      const UNC = isUncensored(dom);
-      const { magnetOptions, ...options } = Offline.getOptions(action, details);
+      // 优先使用缓存的磁链（来自嗅探）
+      let magnets = magnetCache.get(mid) || [];
+      let details = null;
+      let UNC = false;
+      let magnetOptions = null;
+      let options = null;
 
-      // 从请求的视频页面DOM中获取磁链，而不是当前actor页面
-      const getMagnetsFromDom = (domArg) => {
-        return [...domArg.querySelectorAll("#magnets-content > .item")]
-          .map(parseMagnet)
-          .filter(Boolean)
-          .toSorted(Magnet.magnetSort);
-      };
+      // 如果没有缓存，再请求页面
+      if (!magnets.length) {
+        const dom = await Req.request(videoUrl);
+        details = getDetails(dom);
+        if (!details) throw new Error("Not found details");
 
-      const magnets = Offline.getMagnets(getMagnetsFromDom(dom), magnetOptions);
-      if (!magnets.length) throw new Error("Not found magnets");
+        UNC = isUncensored(dom);
+        ({ magnetOptions, ...options } = Offline.getOptions(action, details));
 
+        // 从请求的视频页面DOM中获取磁链
+        const getMagnetsFromDom = (domArg) => {
+          return [...domArg.querySelectorAll("#magnets-content > .item")]
+            .map(parseMagnet)
+            .filter(Boolean)
+            .toSorted(Magnet.magnetSort);
+        };
+
+        magnets = getMagnetsFromDom(dom);
+        if (!magnets.length) throw new Error("Not found magnets");
+
+        // 将获取的磁链加入缓存
+        magnetCache.set(mid, magnets);
+      } else {
+        // 使用缓存的磁链，需要获取基本详情
+        details = { code: target.closest(".item")?.querySelector("strong")?.textContent?.trim() || "" };
+        ({ magnetOptions, ...options } = Offline.getOptions(action, details));
+      }
+
+      // 筛选磁链
+      const filteredMagnets = Offline.getMagnets(magnets, magnetOptions);
+      if (!filteredMagnets.length) throw new Error("No valid magnets found");
+
+      // 执行离线下载
       offline({
         options,
-        magnets: checkCrack(magnets, UNC),
+        magnets: checkCrack(filteredMagnets, UNC),
         onfinally: (res) => onfinally(target, res),
       });
     } catch (err) {
@@ -516,5 +582,13 @@ const offline = async ({ options, magnets, onstart, onprogress, onfinally }, cur
   };
 
   insertActions(actions);
+
+  // 启动初始嗅探
+  sniffVisibleMagnets();
+
+  // 监听滚动事件，启动嗅探
+  window.addEventListener("scroll", handleScrollSniff);
+  window.addEventListener("JavDB.scroll", handleScrollSniff);
+
   document.addEventListener("click", onclick, true);
 })();
