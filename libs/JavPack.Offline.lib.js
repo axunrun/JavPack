@@ -5,7 +5,7 @@ class Offline {
 
   static defaultColor = "is-info";
 
-  static defaultRename = "${zh}${crack} ${code}";
+  static defaultRename = "${code}${zh}${crack}";
 
   static defaultOptions = {
     tags: ["genres", "actors"],
@@ -117,8 +117,24 @@ class Offline {
   static getMagnets(magnets, { filter, sort, max }) {
     if (!magnets?.length) return [];
     if (filter) magnets = magnets.filter(filter);
-    if (sort) magnets = magnets.toSorted(sort);
+    // 如果没有提供sort函数，使用默认的容量>中文字幕>破解排序
+    const sortFunction = sort || this.magnetSort;
+    magnets = magnets.toSorted(sortFunction);
     if (max) magnets = magnets.slice(0, max);
     return magnets;
   }
+
+  /**
+   * 默认磁链排序：容量大小 > 中文字幕 > 破解 > 其他
+   * @param {Object} a - 磁链对象a
+   * @param {Object} b - 磁链对象b
+   * @returns {number} 排序结果
+   */
+  static magnetSort = (a, b) => {
+    const sizeDiff = parseFloat(b.size) - parseFloat(a.size);
+    if (sizeDiff !== 0) return sizeDiff;
+    if (a.zh !== b.zh) return a.zh ? -1 : 1;
+    if (a.crack !== b.crack) return a.crack ? -1 : 1;
+    return 0;
+  };
 }
